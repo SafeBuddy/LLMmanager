@@ -1,26 +1,20 @@
 from flask import Flask
+import google.generativeai as genai
+import os
 
-app = Flask(__name__)
+app = Flask(_name_)
 
-# Create
-@app.route('/create', methods=['POST'])
-def create():
-    return "<h1>Create was successful</h1>"
 
-# Read
-@app.route('/read', methods=['GET'])
-def read():
-    return "<h1>Read was successful</h1>"
+genai.configure(api_key=os.getenv("GENAI_API_KEY"))
 
-# Update
-@app.route('/update', methods=['PUT'])
-def update():
-    return "<h1>Update was successful</h1>"
 
-# Delete
-@app.route('/delete', methods=['DELETE'])
-def delete():
-    return "<h1>Delete was successful</h1>"
+data = "What is the name of the king of england?"
 
-if __name__ == '__main__':
-    app.run(debug=True)
+@app.route('/generate', methods=['GET'])
+def generate():
+    model = genai.GenerativeModel('gemini-1.5-flash')
+    response = model.generate_content(data)
+    return f"<h1>{response.text}</h1>"
+
+if _name_ == '_main_':
+    app.run(debug=True,port=8080)

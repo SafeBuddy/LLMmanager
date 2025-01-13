@@ -4,10 +4,16 @@ import os
 
 app = Flask(__name__)
 
-# Configure the Generative AI client with the API key
-genai.configure(api_key=os.getenv("GENAI_API_KEY"))
 
-# Prompt template
+api_key = os.getenv("GENAI_API_KEY")
+
+
+if not api_key:
+    raise ValueError("The API key is not provided. Please add the API key to the environment.")
+else:
+    genai.configure(api_key=api_key)
+
+
 prompt = (
     "Analyze the following text for evidence of verbal abuse or grooming. If either is present, identify:\n"
     "1. Who is the aggressor and who is the victim.\n"
@@ -17,11 +23,12 @@ prompt = (
     "2: Severe (persistent or highly damaging behavior, significant impact).\n"
     "Please return the answer in valid JSON format as follows:\n"
     "{\n"
-    "  \"Aggressor\": \"[Insert aggressor’s name or identifier here if there is no one write null]\",\n"
-    "  \"Severity score\": [Insert numerical score here]\n"
+    "  \"aggressor\": \"[Insert aggressor’s name or identifier here, or write null if there is no one]\",\n"
+    "  \"severity\": [Insert numerical score here]\n"
     "}\n"
     "Only return valid JSON, with no additional text or commentary."
 )
+
 
 
 # Example data
@@ -41,7 +48,7 @@ def check_messages():
     message = data['messages']
     model = genai.GenerativeModel('gemini-1.5-flash')
     combined = prompt + "/n" + message
-    response = model.generate_content(combined)
+    response = model.generate_content(combined, generation_config=genai.GenerationConfig(response_mime_type="application/json"))
     return response.text
 
 

@@ -49,11 +49,11 @@ def check_messages():
     
     message = data['messages']
     model = genai.GenerativeModel('gemini-1.5-flash')
-    combined = prompt + "\n" + message  # תיקון newline
+    combined = prompt + "\n" + message  
 
     try:
         response = model.generate_content(combined, generation_config=genai.GenerationConfig(response_mime_type="application/json"))
-        # המרה של התגובה מ-JSON string למילון
+        
         response_json = json.loads(response.text)
         return jsonify(response_json), 200
     except json.JSONDecodeError:

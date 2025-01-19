@@ -1,6 +1,7 @@
 from flask import Flask, jsonify, request
 import google.generativeai as genai
 import os
+import json
 
 app = Flask(__name__)
 
@@ -33,25 +34,33 @@ prompt = (
 
 # Example data
 # example_data = (
-#     "Side A: \"You're such a loser. Everyone hates you. Why don't you just leave already?\" "
-#     "Side B: \"Please stop talking to me like that. I don't deserve this.\" "
-#     "Side A: \"Oh, cry me a river. You're worthless and pathetic. Nobody cares about you.\" "
-#     "Side B: \"This is really upsetting. Please stop.\" "
-#     "Side A: \"You’re so dramatic. Just disappear already.\""
+    # "Side A: \"You're such a loser. Everyone hates you. Why don't you just leave already?\" "
+    # "Side B: \"Please stop talking to me like that. I don't deserve this.\" "
+    # "Side A: \"Oh, cry me a river. You're worthless and pathetic. Nobody cares about you.\" "
+    # "Side B: \"This is really upsetting. Please stop.\" "
+    # "Side A: \"You’re so dramatic. Just disappear already.\""
 # )
 
 @app.route('/check-messages', methods=['POST'])
 def check_messages():
     data = request.json
     if not data or 'messages' not in data:
-        return jsonify({"error": "Invalid request. 'message' field is required."}), 400
+        return jsonify({"error": "Invalid request. 'messages' field is required."}), 400
+    
     message = data['messages']
     model = genai.GenerativeModel('gemini-1.5-flash')
-    combined = prompt + "/n" + message
-    response = model.generate_content(combined, generation_config=genai.GenerationConfig(response_mime_type="application/json"))
-    return response.text
+    combined = prompt + "\n" + message  # תיקון newline
 
+    try:
+        response = model.generate_content(combined, generation_config=genai.GenerationConfig(response_mime_type="application/json"))
+        # המרה של התגובה מ-JSON string למילון
+        response_json = json.loads(response.text)
+        return jsonify(response_json), 200
+    except json.JSONDecodeError:
+        return jsonify({"error": "Failed to decode the model's response as JSON."}), 500
+    except Exception as e:
+        return jsonify({"error": f"An unexpected error occurred: {str(e)}"}), 500
 
 
 if __name__ == '_main_':
-    app.run(debug=True,port=8080)
+    app.run(debug=True,port=5000)
